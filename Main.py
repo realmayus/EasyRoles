@@ -5,25 +5,33 @@ import discord
 from discord import Role, Member, client
 from discord.ext import commands
 
-bot = commands.Bot(command_prefix='::')
-
 config = configparser.RawConfigParser()
 config.read("config.ini")
 
+prefix = config["bot"]["prefix"] if config.has_option("bot", "prefix") else "::"
+
+"""Setting the command prefix to the config value if it exists, else use :: as default"""
+bot = commands.Bot(command_prefix=prefix)
+
+
+"""Available config options"""
 available_options_and_values = {
     "replace_existing_roles": ["false", "true"]
 }
 
+
 @bot.event
 async def on_ready():
+    """registering interactive status task"""
     bot.loop.create_task(status_task())
 
 
 async def status_task():
+    """interactive status, changes from ::help to the credit and back"""
     while True:
-        await bot.change_presence(activity=discord.Game(name="::help"))
+        await bot.change_presence(activity=discord.Game(name=prefix + "help"))
         await asyncio.sleep(10)
-        await bot.change_presence(activity=discord.Game(name="made by marius"))
+        await bot.change_presence(activity=discord.Game(name="made by realmayus"))
         await asyncio.sleep(20)
 
 
@@ -78,7 +86,6 @@ async def delselfrole(ctx, channel_id, message_id):
 @bot.command(name="config")
 async def config_cmd(ctx, option_to_change=None, value=None):
     """Allows you to change a server-specific config value. Enter the command without arguments to see the available options and values."""
-
     if ctx.author.guild_permissions.administrator:
         if option_to_change is not None and value is not None:
             value = str(value).lower()
@@ -108,6 +115,7 @@ async def config_cmd(ctx, option_to_change=None, value=None):
 
 @bot.event
 async def on_raw_reaction_add(reaction):
+    """Adds role to user when they react to the self role message AND removes existing roles IN CASE the replace_existing_roles option is set to "true". """
     user = reaction.member
     message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
     if reaction.emoji.name == "👍" and user.id != bot.user.id:
@@ -130,12 +138,13 @@ async def on_raw_reaction_add(reaction):
                             await selfrole_msg.remove_reaction("👍", user)
 
             role_o = message.guild.get_role(int(role))
-            print("Benutzer " + user.name + " hat sich die Rolle " + role_o.name + " zugewiesen.")
+            print("User " + user.name + " acquired role " + role_o.name + ".")
             await user.add_roles(role_o)
 
 
 @bot.event
 async def on_raw_reaction_remove(reaction):
+    """Removes the corresponding role when the user removes their reaction from the self role message"""
     user = bot.get_guild(reaction.guild_id).get_member(reaction.user_id)
     message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
     if reaction.emoji.name == "👍" and user.id != bot.user.id:
@@ -143,7 +152,7 @@ async def on_raw_reaction_remove(reaction):
             role = config[str(reaction.guild_id)][str(message.id)]
             role_o = message.guild.get_role(int(role))
             await user.remove_roles(role_o)
-            print("Benutzer " + user.name + " hat sich die Rolle " + role_o.name + " entzogen.")
+            print("User " + user.name + " revoked role " + role_o.name + ".")
 
 
 bot.run(config["bot"]["token"])
