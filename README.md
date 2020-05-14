@@ -3,6 +3,9 @@ A really simple reaction-based self role bot for Discord, written in Python.
 
 It allows you to have the bot send a message that your server's members can react to. If they do this, the bot will give them the specified role.
 
+**Invite Link**: [<Invite Me>](https://discord.com/api/oauth2/authorize?client_id=710438395830206485&permissions=8&scope=bot)
+(EasyRoles needs Administrator privileges. **It only works if** the role it should give a user is **below EasyRoles's role** (i.e. EasyRoles' role must be above the roles you want to offer your members))
+
 ## How to use / Commands
 EasyRoles' commands have the prefix `::` by default.
 ### ::help
