@@ -7,6 +7,9 @@ It allows you to have the bot send a message that your server's members can reac
 
 (EasyRoles needs Administrator privileges. **It only works if** the role it should give a user is **below EasyRoles's role** (i.e. EasyRoles's role must be above the roles you want to offer your members))
 
+**Support**: https://discord.gg/53FQpTQ
+
+
 ## How to use / Commands
 EasyRoles' commands have the prefix `::` by default.
 ### ::help
