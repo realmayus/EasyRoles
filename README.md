@@ -16,6 +16,13 @@ Arguments:
  
  2 - ∞ : *msg*:  *OPTIONAL* You can define a custom message here, if not specified, it defaults to: *Click on :thumbsup: below this message to get the role {mention}*. You can use the placeholder `{mention}` for the role mention.
 
+**Examples**:
+
+*using default message*: `::selfrole @JapaneseSpeakers`
+
+*with custom message*: `::selfrole @JapaneseSpeakers React with :thumbsup: below so that you can get that sweet {mention} role!`
+
+
 ### ::delselfrole
 Remove a selfrole listener and the message. This is not neccessary, you can just delete the message by yourself but it can make the bot on your server a bit faster.
 Arguments:
