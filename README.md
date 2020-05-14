@@ -45,7 +45,9 @@ Enter in the format `::config option_to_change value`
 [bot]
 token = $YOUR_BOT_TOKEN$
 ```
-4. Start script and invite your bot using the URL that discord provides in the OAuth Section when you activate the "bot" checkbox.
+4. Start script and invite your bot using this link:
+Replace $YOUR_CLIENT_ID$ with the client ID provided in the dev panel:
+https://discord.com/api/oauth2/authorize?client_id=$YOUR_CLIENT_ID$&permissions=8&scope=bot
 
 ### Use a custom prefix
 If there are other bots in your server that are conflicting with EasyRoles' prefix, you may want to change it. To do that, just specify the following option in the `[bot]` section in your `config.ini` file:
