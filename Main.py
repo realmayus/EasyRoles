@@ -16,7 +16,8 @@ bot = commands.Bot(command_prefix=prefix)
 
 """Available config options"""
 available_options_and_values = {
-    "replace_existing_roles": ["false", "true"]
+    "replace_existing_roles": ["false", "true"],
+    "forbid_invite": ["false", "true"]
 }
 
 
@@ -31,8 +32,23 @@ async def status_task():
     while True:
         await bot.change_presence(activity=discord.Game(name=prefix + "help"))
         await asyncio.sleep(10)
-        await bot.change_presence(activity=discord.Game(name="made by realmayus"))
-        await asyncio.sleep(20)
+        await bot.change_presence(activity=discord.Game(name="made by marius"))
+        await asyncio.sleep(15)
+        await bot.change_presence(activity=discord.Game(name=str(len([s for s in bot.guilds])) + " servers"))
+        await asyncio.sleep(15)
+        await bot.change_presence(activity=discord.Game(name=prefix + "inviteme"))
+        await asyncio.sleep(15)
+
+
+@bot.command()
+async def inviteme(ctx):
+    if config.has_option(str(ctx.guild.id), "forbid_invite"):
+        if config[str(ctx.guild.id)]["forbid_invite"] == "false":
+            await ctx.send("You can invite me to your server if you like what I can do! <3\n <https://discord.com/api/oauth2/authorize?client_id=710438395830206485&permissions=8&scope=bot>")
+        else:
+            await ctx.send("The owner of this server has forbidden me to send you an invite link :(")
+    else:
+        await ctx.send("You can invite me to your server if you like what I can do! <3\n <https://discord.com/api/oauth2/authorize?client_id=710438395830206485&permissions=8&scope=bot>")
 
 
 @bot.command()
@@ -107,8 +123,6 @@ async def config_cmd(ctx, option_to_change=None, value=None):
                 await ctx.send("Invalid option. Available: \n```" + str(available_options_and_values) + "```")
         else:
             await ctx.send("Usage: `::config option_to_change new_value`. Available options/values: \n```" + str(available_options_and_values) + "```")
-
-
     else:
         await ctx.send("Insufficient permissions, you need to have the admin permission!")
 
