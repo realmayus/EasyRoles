@@ -90,6 +90,7 @@ async def status_task():
 
 @bot.command()
 async def inviteme(ctx):
+    """Sends an invite link to the chat so that you can invite the bot to your server! There's a flag to have the bot send the invite via DM if you don't want to have it posted in your server."""
     option = next((item for item in cached_config_options if str(item["guild_id"]) == str(ctx.guild.id)), None)
     if option:
         if "forbid_invite" in option.keys():

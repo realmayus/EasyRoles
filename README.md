@@ -13,48 +13,63 @@ It allows you to have the bot send a message that your server's members can reac
 ## How to use / Commands
 EasyRoles' commands have the prefix `::` by default.
 ### ::help
-Shows a useful help section. Provide the command you need help for as a second argument if you want.
+::help \<command\>
+
+Shows a useful help section which contains everything in this readme, nicely organized. Provide the command you need help for as a second argument if you want.
 
 ### ::selfrole
-Initiate a self role system. 
+::selfrole \<args\>
+
+Sends a message to the current chat the users can react to with :thumbsup: (default) to get the role.
+
 Arguments:
+```
+-m (Mention, required)
+-e (Custom Emoji, optional)
+--msg (Custom Message, optional)
+```
+Has a cooldown of 25 executions every three minutes per guild. Do not abuse, please.
 
- 1 : *rolemention*:  A @mention of the role you want to create the selfroling system for.
- 
- 2 - ∞ : *msg*:  *OPTIONAL* You can define a custom message here, if not specified, it defaults to: *Click on :thumbsup: below this message to get the role {mention}*. You can use the placeholder `{mention}` for the role mention.
+### ::flag
+::flag \[option_to_change\] \[value\]
 
-**Examples**:
+Allows you to change a server-specific flag. Enter the command without arguments to see the available flags and values.
+Has a cooldown of 10 executions every three minutes per guild. Do not abuse, please.
 
-*using default message*: `::selfrole @JapaneseSpeakers`
+### ::inviteme
+::inviteme 
 
-*with custom message*: `::selfrole @JapaneseSpeakers React with :thumbsup: below so that you can get that sweet {mention} role!`
+Sends an invite link to the chat so that you can invite the bot to your server! There's a flag to have the bot send the invite via DM if you don't want to have it posted in your server.
 
+### ::recache
+::recache 
 
-### ::delselfrole
-Remove a selfrole listener and the message. This is not neccessary, you can just delete the message by yourself but it can make the bot on your server a bit faster.
-Arguments:
- 1 : *channel_id*: The ID of the channel the message you want to delete is in.
- 2 : *message_id*: The ID of the message you want to delete.
-You can get the IDs by enabling Developer mode in Discord and rightclicking on the channel or the message.
- 
-### ::config
-Allows you to change server-specific config values.
-Arguments:
-*When entered with no arguments, it will display all available config values.*
-Enter in the format `::config option_to_change value`
- 
+Reloads the cache for every server. Useful if things don't work as they should. Has a cooldown of 20 minutes per guild. Do not abuse, please.
+
 ## Host it by yourself
-1. [Obtain a bot token](https://github.com/Chikachi/DiscordIntegration/wiki/How-to-get-a-token-and-channel-ID-for-Discord#create-an-application-in-discords-system)
-2. Create a config file called `config.ini` in the same directory as the script.
-3. Add the following content:
+You can host EasyRoles by yourself, but it requires you to set up a (free) Firebase Firestore database.
+
+- [Obtain a bot token](https://github.com/Chikachi/DiscordIntegration/wiki/How-to-get-a-token-and-channel-ID-for-Discord#create-an-application-in-discords-system)
+- Create a config file called `config.ini` in the same directory as the script.
+- Add the following content:
 
 ```ini
 [bot]
 token = $YOUR_BOT_TOKEN$
 ```
-4. Start script and invite your bot using this link:
+- Create a Firestore at Firebase and download the SDK certificate (see below). Save it as `firebase-sdk.json` in the same folder as the python script.
+- Start script and invite your bot using this link:
+
 Replace $YOUR_CLIENT_ID$ with the client ID provided in the dev panel:
 https://discord.com/api/oauth2/authorize?client_id=$YOUR_CLIENT_ID$&permissions=8&scope=bot
+
+### Obtain the Firebase SDK certificate
+- Go to your firebase project.
+- Make sure you have set up a **Firestore** database. It has to be Firestore, a realtime database is not supported.
+- Go to your project's settings: ![](https://i.imgur.com/zdXgxX0.png)
+- Open the `Service accounts` tab: ![](https://i.imgur.com/qMB9cFq.png)
+- Click on the `Firebase Admin SDK` tab on the left and then on `Generate new private key`. Download the json file and save it in EasyRoles's directory with the file name `firebase-sdk.json`: ![](https://i.imgur.com/Xqi1kWT.png)
+
 
 ### Use a custom prefix
 If there are other bots in your server that are conflicting with EasyRoles' prefix, you may want to change it. To do that, just specify the following option in the `[bot]` section in your `config.ini` file:
