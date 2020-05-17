@@ -1,11 +1,40 @@
 import asyncio  # for waiting before changing the status of the bot
 import configparser  # for reading the config which contains bot token and prefix
 import shlex  # for parsing the named arguments in the ::selfrole command
+import sys
+import logging
+from logging.handlers import RotatingFileHandler
+
 import firebase_admin  # for working with the Firestore database
 import discord  # for interacting with the discord API
 from discord.ext import commands  # for creating and using commands easily!
 from firebase_admin import credentials  # for connecting with the database
 from firebase_admin import firestore  # for working with the database
+
+#############
+"""LOGGING"""
+#############
+log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+logFile = 'log.txt'
+my_handler = RotatingFileHandler(filename=logFile, mode='a', maxBytes=5*1024*1024, backupCount=2, encoding=None, delay=0)
+my_handler.setFormatter(log_formatter)
+my_handler.setLevel(logging.INFO)
+logger = logging.getLogger("easyroles")
+logger.setLevel(logging.INFO)
+logger.addHandler(my_handler)
+
+
+def exception_handler(_type, value, _tb):
+    logger.exception("Uncaught exception: " + str(value))
+
+
+def output(*msg):
+    logger.info(' '.join(msg))
+    print(' '.join(msg))
+
+
+sys.excepthook = exception_handler
+############
 
 config = configparser.RawConfigParser()
 config.read("config.ini")
@@ -38,15 +67,15 @@ cached_config_options = []  # Cache for all config options in all servers so we 
 async def on_ready():
     """Caching both guild-specific config options and all registered selfroling messages"""
     global cached_config_options  # ugly, ik
-    print("Bot logged in!")
+    output("Bot logged in!")
     await bot.change_presence(activity=discord.Game(name="🔄 Starting..."))
     await cache()
-    print("Bot is now ready for use.")
+    output("Bot is now ready for use.")
     bot.loop.create_task(status_task())
 
 
 async def cache(callback_channel=None):
-    print("Caching config options of all servers…")
+    output("Caching config options of all servers…")
     docs = db.collection("guild_config").stream()
     for doc in docs:
         cache = {"guild_id": doc.id}
@@ -54,15 +83,15 @@ async def cache(callback_channel=None):
         for key, value in values.items():
             cache[key] = value
         cached_config_options.append(cache)
-    print("Done!")
+    output("Done!")
 
-    print("Now caching all selfroling messages for all guilds.")
+    output("Now caching all selfroling messages for all guilds.")
     i = 0
     for channel_coll in db.collections():
         if channel_coll.id != "guild_config":
             channel_id = channel_coll.id
             i += 1
-            print("-> Caching selfroling messages for channel no. " + str(i))
+            output("-> Caching selfroling messages for channel no. " + str(i))
             for doc in channel_coll.stream():
                 if doc.exists:  # check if message is registered selfrole message :3
                     values = doc.to_dict()
@@ -70,7 +99,7 @@ async def cache(callback_channel=None):
                         {"channel_id": channel_id, "message_id": doc.id, "mention_id": values["mention_id"],
                          "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
 
-    print("Done!")
+    output("Done!")
     if callback_channel:
         await callback_channel.send("✅  Recaching complete!")
 
@@ -120,7 +149,7 @@ async def recache(ctx):
         await ctx.send("⚠️  You can only execute this command in a server (to prevent abuse)")
         return
     if ctx.author.guild_permissions.administrator:
-        print("User " + str(ctx.author.name) + " (ID: " + str(ctx.author.id) + ") from guild " + str(ctx.guild.id) + " has initiated a recache.")
+        output("User " + str(ctx.author.name) + " (ID: " + str(ctx.author.id) + ") from guild " + str(ctx.guild.id) + " has initiated a recache.")
         await ctx.message.add_reaction(emoji="🔄")
         bot.loop.create_task(cache(callback_channel=ctx.channel))
     else:
@@ -173,7 +202,7 @@ async def selfrole(ctx, *, args):
             "mention_id": mention[3:len(mention) - 1]
         })
         cached_selfrole_msgs.append({"channel_id": ctx.channel.id, "message_id": msg.id, "mention_id": mention[3:len(mention) - 1], "emoji": emoji})
-        print("-> Added selfroling message with ID" + str(msg.id) + " to cache with channel ID " + str(ctx.channel.id))
+        output("-> Added selfroling message with ID" + str(msg.id) + " to cache with channel ID " + str(ctx.channel.id))
     else:
         await ctx.send("⚠️  Insufficient permissions, you need to have the admin permission!")
 
@@ -201,7 +230,7 @@ async def flag(ctx, option_to_change=None, value=None):
                         }, merge=True)
 
                     except Exception as e:
-                        print(e)
+                        output(e)
                         await ctx.send("⚠️  Couldn't set this flag, please check log :(")
                     else:
                         for cached_config_option in cached_config_options:
@@ -248,7 +277,7 @@ async def on_raw_reaction_add(reaction):
 
             role_o = message.guild.get_role(int(values["mention_id"]))
             await user.add_roles(role_o)
-            print("User " + user.name + " acquired role " + role_o.name + ".")
+            output("User " + user.name + " acquired role " + role_o.name + ".")
         # else:
             # Do nothing because the reaction is none of our business :)
 
@@ -266,7 +295,7 @@ async def on_raw_reaction_remove(reaction):
         values = cached_selfrole_message
         role_o = message.guild.get_role(int(values["mention_id"]))
         await user.remove_roles(role_o)
-        print("User " + user.name + " revoked role " + role_o.name + ".")
+        output("User " + user.name + " revoked role " + role_o.name + ".")
 
 
 @selfrole.error
@@ -274,7 +303,7 @@ async def on_raw_reaction_remove(reaction):
 @recache.error
 async def selfrole_cmd_error_handler(ctx, error):
     await ctx.send("Oh no! An error ocurred:\nError: `" + str(error) + "`")
-    print(error)
+    output(error)
 
 
 bot.run(config["bot"]["token"])
