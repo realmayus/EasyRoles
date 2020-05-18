@@ -168,6 +168,7 @@ def get_member_count() -> int:
 
 @bot.command()
 async def stats(ctx):
+    """Returns a nice embed with neat statistics of the bot :)"""
     current_time = time.time()
     difference = int(round(current_time - start_time))
     text = str(datetime.timedelta(seconds=difference))
