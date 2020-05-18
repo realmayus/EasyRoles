@@ -110,14 +110,10 @@ async def cache(callback_channel=None):
 async def status_task():
     """interactive status, changes from ::help to the credit and back"""
     while True:
-        await bot.change_presence(activity=discord.Game(name="made by marius/realmayus"))
-        await asyncio.sleep(15)
-        await bot.change_presence(activity=discord.Game(name=str(len(bot.guilds)) + " servers"))
-        await asyncio.sleep(20)
         await bot.change_presence(activity=discord.Game(name=prefix + "help"))
-        await asyncio.sleep(20)
+        await asyncio.sleep(30)
         await bot.change_presence(activity=discord.Game(name=prefix + "inviteme"))
-        await asyncio.sleep(20)
+        await asyncio.sleep(30)
 
 
 @bot.command()
