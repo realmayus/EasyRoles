@@ -293,7 +293,7 @@ async def on_raw_reaction_add(reaction):
             values = cached_selfrole_message
 
         if values is not None:
-            if cached_config_option and (cached_config_option["replace_existing_roles"] == "true" or cached_config_option["replace_existing_roles"] is True):
+            if cached_config_option and "replace_existing_roles" in cached_config_option and (cached_config_option["replace_existing_roles"] == "true" or cached_config_option["replace_existing_roles"] is True):
                 for role_i in user.roles:
                     try:
                         if role_i.name != "@everyone":
