@@ -1,8 +1,10 @@
 import asyncio  # for waiting before changing the status of the bot
 import configparser  # for reading the config which contains bot token and prefix
+import datetime
 import shlex  # for parsing the named arguments in the ::selfrole command
 import sys
 import logging
+import time
 from logging.handlers import RotatingFileHandler
 
 import firebase_admin  # for working with the Firestore database
@@ -39,6 +41,11 @@ sys.excepthook = exception_handler
 config = configparser.RawConfigParser()
 config.read("config.ini")
 
+# Stats
+start_time = time.time()
+stats_roles_given = 0
+stats_roles_revoked = 0
+
 
 # Setting the command prefix to the config value if it exists, else use :: as default
 prefix = config["bot"]["prefix"] if config.has_option("bot", "prefix") else "::"
@@ -57,10 +64,6 @@ db = firestore.client()
 cached_selfrole_msgs = []  # Cache for the selfrole msgs so that we don't have to make a damn DB call every damn time the user reacts to any damn message in any damn server the damn bot is in. Damn.
 
 cached_config_options = []  # Cache for all config options in all servers so we don't have to make a DB call every time the user reacts to a msg T_T
-
-# The lists look like this:
-# cached_selfrole_msgs = [{channel_id: "", message_id: "", emoji: "", mention_id: ""}]
-# cached_config_options = [{guild_id: "", "replace_existing_roles": True, "forbid_invite": True}]
 
 
 @bot.event
@@ -141,19 +144,41 @@ async def inviteme(ctx):
             "You can invite me to your server if you like what I can do! <3\n <https://discord.com/api/oauth2/authorize?client_id=710438395830206485&permissions=8&scope=bot>")
 
 
+# @bot.command()
+# @commands.cooldown(1, 1200, commands.BucketType.guild)
+# async def recache(ctx):
+#     """Reloads the cache for every server. Useful if things don't work as they should. Has a cooldown of 20 minutes per guild. Do not abuse, please."""
+#     if isinstance(ctx.channel, discord.DMChannel):
+#         await ctx.send("⚠️  You can only execute this command in a server (to prevent abuse)")
+#         return
+#     if ctx.author.guild_permissions.administrator:
+#         output("User " + str(ctx.author.name) + " (ID: " + str(ctx.author.id) + ") from guild " + str(ctx.guild.id) + " has initiated a recache.")
+#         await ctx.message.add_reaction(emoji="🔄")
+#         bot.loop.create_task(cache(callback_channel=ctx.channel))
+#     else:
+#         await ctx.send("⚠️  Insufficient permissions, you need to have the admin permission!")
+
+def get_member_count() -> int:
+    counter = 0
+    for guild in bot.guilds:
+        for _ in guild.members:
+            counter += 1
+    return counter
+
+
 @bot.command()
-@commands.cooldown(1, 1200, commands.BucketType.guild)
-async def recache(ctx):
-    """Reloads the cache for every server. Useful if things don't work as they should. Has a cooldown of 20 minutes per guild. Do not abuse, please."""
-    if isinstance(ctx.channel, discord.DMChannel):
-        await ctx.send("⚠️  You can only execute this command in a server (to prevent abuse)")
-        return
-    if ctx.author.guild_permissions.administrator:
-        output("User " + str(ctx.author.name) + " (ID: " + str(ctx.author.id) + ") from guild " + str(ctx.guild.id) + " has initiated a recache.")
-        await ctx.message.add_reaction(emoji="🔄")
-        bot.loop.create_task(cache(callback_channel=ctx.channel))
-    else:
-        await ctx.send("⚠️  Insufficient permissions, you need to have the admin permission!")
+async def stats(ctx):
+    current_time = time.time()
+    difference = int(round(current_time - start_time))
+    text = str(datetime.timedelta(seconds=difference))
+    embed = discord.Embed(title="Stats for EasyRoles")
+    embed.set_author(name="Stats")
+    embed.add_field(name="Uptime", value=text, inline=True)
+    embed.add_field(name="Server Count", value=str(len(bot.guilds)), inline=True)
+    embed.add_field(name="Member Count", value=str(get_member_count()), inline=True)
+    embed.add_field(name="Roles given since start", value=str(stats_roles_given), inline=True)
+    embed.add_field(name="Roles revoked since start", value=str(stats_roles_revoked), inline=True)
+    await ctx.send(embed=embed)
 
 
 @bot.command()
@@ -253,6 +278,7 @@ async def flag(ctx, option_to_change=None, value=None):
 @bot.event
 async def on_raw_reaction_add(reaction):
     """Adds role to user when they react to the self role message AND removes existing roles IN CASE the replace_existing_roles option is set to "true". """
+    global stats_roles_given, stats_roles_revoked
     user = reaction.member
     message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
     channel = bot.get_channel(reaction.channel_id)
@@ -272,11 +298,13 @@ async def on_raw_reaction_add(reaction):
                     try:
                         if role_i.name != "@everyone":
                             await user.remove_roles(role_i)
+                            stats_roles_revoked += 1
                     except:
                         pass
 
             role_o = message.guild.get_role(int(values["mention_id"]))
             await user.add_roles(role_o)
+            stats_roles_given += 1
             output("User " + user.name + " acquired role " + role_o.name + ".")
         # else:
             # Do nothing because the reaction is none of our business :)
@@ -285,6 +313,7 @@ async def on_raw_reaction_add(reaction):
 @bot.event
 async def on_raw_reaction_remove(reaction):
     """Removes the corresponding role when the user removes their reaction from the self role message"""
+    global stats_roles_revoked
     user = bot.get_guild(reaction.guild_id).get_member(reaction.user_id)
     message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
     channel = bot.get_channel(reaction.channel_id)
@@ -295,12 +324,13 @@ async def on_raw_reaction_remove(reaction):
         values = cached_selfrole_message
         role_o = message.guild.get_role(int(values["mention_id"]))
         await user.remove_roles(role_o)
+        stats_roles_revoked += 1
         output("User " + user.name + " revoked role " + role_o.name + ".")
 
 
 @selfrole.error
 @flag.error
-@recache.error
+# @recache.error
 async def selfrole_cmd_error_handler(ctx, error):
     await ctx.send("Oh no! An error ocurred:\nError: `" + str(error) + "`")
     output(error)
