@@ -289,19 +289,20 @@ async def on_raw_reaction_add(reaction):
             values = cached_selfrole_message
 
         if values is not None:
-            if cached_config_option and "replace_existing_roles" in cached_config_option and (cached_config_option["replace_existing_roles"] == "true" or cached_config_option["replace_existing_roles"] is True):
-                for role_i in user.roles:
-                    try:
-                        if role_i.name != "@everyone":
-                            await user.remove_roles(role_i)
-                            stats_roles_revoked += 1
-                    except:
-                        pass
+            if reaction.emoji == values["emoji"]:
+                if cached_config_option and "replace_existing_roles" in cached_config_option and (cached_config_option["replace_existing_roles"] == "true" or cached_config_option["replace_existing_roles"] is True):
+                    for role_i in user.roles:
+                        try:
+                            if role_i.name != "@everyone":
+                                await user.remove_roles(role_i)
+                                stats_roles_revoked += 1
+                        except:
+                            pass
 
-            role_o = message.guild.get_role(int(values["mention_id"]))
-            await user.add_roles(role_o)
-            stats_roles_given += 1
-            output("User " + user.name + " acquired role " + role_o.name + ".")
+                role_o = message.guild.get_role(int(values["mention_id"]))
+                await user.add_roles(role_o)
+                stats_roles_given += 1
+                output("User " + user.name + " acquired role " + role_o.name + ".")
         # else:
             # Do nothing because the reaction is none of our business :)
 
