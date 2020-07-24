@@ -71,7 +71,7 @@ async def on_ready():
     """Caching both guild-specific config options and all registered selfroling messages"""
     global cached_config_options  # ugly, ik
     output("Bot logged in!")
-    await cache()
+    bot.loop.create_task(cache())
     output("Bot is now ready for use.")
     
 
@@ -102,8 +102,6 @@ async def cache(callback_channel=None):
                          "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
 
     output("Done!")
-    if callback_channel:
-        await callback_channel.send("✅  Recaching complete!")
 
 
 async def status_task():
