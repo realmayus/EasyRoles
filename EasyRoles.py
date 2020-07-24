@@ -75,31 +75,34 @@ async def on_ready():
 
     
 async def cache(callback_channel=None):
-    output("Caching config options of all servers…")
-    docs = db.collection("guild_config").stream()
-    for doc in docs:
-        cache = {"guild_id": doc.id}
-        values = doc.to_dict()
-        for key, value in values.items():
-            cache[key] = value
-        cached_config_options.append(cache)
-    output("Done!")
+    try:
+        output("Caching config options of all servers…")
+        docs = db.collection("guild_config").stream()
+        for doc in docs:
+            cache = {"guild_id": doc.id}
+            values = doc.to_dict()
+            for key, value in values.items():
+                cache[key] = value
+            cached_config_options.append(cache)
+        output("Done!")
 
-    output("Now caching all selfroling messages for all guilds.")
-    i = 0
-    for channel_coll in db.collections():
-        if channel_coll.id != "guild_config":
-            channel_id = channel_coll.id
-            i += 1
-            output("-> Caching selfroling messages for channel no. " + str(i))
-            for doc in channel_coll.stream():
-                if doc.exists:  # check if message is registered selfrole message :3
-                    values = doc.to_dict()
-                    cached_selfrole_msgs.append(
-                        {"channel_id": channel_id, "message_id": doc.id, "mention_id": values["mention_id"],
-                         "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
+        output("Now caching all selfroling messages for all guilds.")
+        i = 0
+        for channel_coll in db.collections():
+            if channel_coll.id != "guild_config":
+                channel_id = channel_coll.id
+                i += 1
+                output("-> Caching selfroling messages for channel no. " + str(i))
+                for doc in channel_coll.stream():
+                    if doc.exists:  # check if message is registered selfrole message :3
+                        values = doc.to_dict()
+                        cached_selfrole_msgs.append(
+                            {"channel_id": channel_id, "message_id": doc.id, "mention_id": values["mention_id"],
+                             "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
 
-    output("Done! Bot is now ready for use.")
+        output("Done! Bot is now ready for use.")
+    except Exception as error:
+        traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
 async def status_task():
