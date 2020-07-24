@@ -71,11 +71,8 @@ async def on_ready():
     """Caching both guild-specific config options and all registered selfroling messages"""
     global cached_config_options  # ugly, ik
     output("Bot logged in!")
-    bot.loop.create_task(cache())
-    output("Bot is now ready for use.")
+
     
-
-
 async def cache(callback_channel=None):
     output("Caching config options of all servers…")
     docs = db.collection("guild_config").stream()
@@ -101,7 +98,7 @@ async def cache(callback_channel=None):
                         {"channel_id": channel_id, "message_id": doc.id, "mention_id": values["mention_id"],
                          "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
 
-    output("Done!")
+    output("Done! Bot is now ready for use.")
 
 
 async def status_task():
@@ -331,4 +328,5 @@ async def selfrole_cmd_error_handler(ctx, error):
     output(error)
 
 bot.loop.create_task(status_task())
+bot.loop.create_task(cache())
 bot.run(config["bot"]["token"])
