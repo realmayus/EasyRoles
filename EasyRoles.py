@@ -70,7 +70,7 @@ cached_config_options = []  # Cache for all config options in all servers so we 
 async def on_ready():
     """Caching both guild-specific config options and all registered selfroling messages"""
     global cached_config_options  # ugly, ik
-    output("Bot logged in!")
+    print("Bot logged in as " + str(self.bot.user))
 
     
 async def cache(callback_channel=None):
