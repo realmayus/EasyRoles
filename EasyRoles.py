@@ -105,10 +105,10 @@ async def status_task():
     """interactive status, changes from ::help to the credit and back"""
     await bot.wait_until_ready()
     while True:
+        await asyncio.sleep(7*60)
         await bot.change_presence(activity=discord.Game(name=prefix + "help"))
         await asyncio.sleep(7*60)
         await bot.change_presence(activity=discord.Game(name=prefix + "inviteme"))
-        await asyncio.sleep(7*60)
 
 
 @bot.command()
