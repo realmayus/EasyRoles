@@ -71,10 +71,9 @@ async def on_ready():
     """Caching both guild-specific config options and all registered selfroling messages"""
     global cached_config_options  # ugly, ik
     output("Bot logged in!")
-    await bot.change_presence(activity=discord.Game(name="🔄 Starting..."))
     await cache()
     output("Bot is now ready for use.")
-    bot.loop.create_task(status_task())
+    
 
 
 async def cache(callback_channel=None):
@@ -109,6 +108,7 @@ async def cache(callback_channel=None):
 
 async def status_task():
     """interactive status, changes from ::help to the credit and back"""
+    await bot.wait_until_ready()
     while True:
         await bot.change_presence(activity=discord.Game(name=prefix + "help"))
         await asyncio.sleep(7*60)
@@ -332,5 +332,5 @@ async def selfrole_cmd_error_handler(ctx, error):
     await ctx.send("Oh no! An error ocurred:\nError: `" + str(error) + "`")
     output(error)
 
-
+bot.loop.create_task(status_task())
 bot.run(config["bot"]["token"])
