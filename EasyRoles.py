@@ -31,44 +31,37 @@ class EasyRoles(commands.Cog):
     async def on_ready(self):
         print("Bot logged in as " + str(self.bot.user))
 
-    async def cache(self):
-        print("Caching config options of all servers…")
-        docs = self.db.collection("guild_config").stream()
-        for doc in docs:
-            cache = {"guild_id": doc.id}
-            values = doc.to_dict()
-            for key, value in values.items():
-                cache[key] = value
-            self.cached_config_options.append(cache)
-        print("Done!")
-
-        print("Now caching all selfroling messages for all guilds.")
-        i = 0
-        for channel_coll in self.db.collections():
-            if channel_coll.id != "guild_config":
-                channel_id = channel_coll.id
-                i += 1
-                print("-> Caching selfroling messages for channel no. " + str(i))
-                for doc in channel_coll.stream():
-                    if doc.exists:  # check if message is registered selfrole message :3
-                        values = doc.to_dict()
-                        self.cached_selfrole_msgs.append(
-                            {"channel_id": channel_id, "message_id": doc.id, "mention_id": values["mention_id"],
-                             "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
-
-        print("Done! Bot is now ready for use.")
+    async def lazy_cache(self, channel_id: int):
+        print(f"Lazy-caching channel {channel_id}")
+        msg_docs = self.db.collection(str(channel_id)).stream()
+        for msg_doc in msg_docs:
+            if msg_doc.exists:  # check if message is registered selfrole message :3
+                values = msg_doc.to_dict()
+                self.cached_selfrole_msgs.append(
+                    {"channel_id": channel_id, "message_id": msg_doc.id, "mention_id": values["mention_id"],
+                     "emoji": values["emoji"]})  # add the message from the DB to our cache ʕ•ᴥ•ʔ
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction):
         """Adds role to user when they react to the self role message AND removes existing roles IN CASE the replace_existing_roles option is set to "true". """
         user = reaction.member
-        print("reacted!")
-        message = await self.bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
         channel = self.bot.get_channel(reaction.channel_id)
+        message = await channel.fetch_message(reaction.message_id)
 
         cached_selfrole_message = next((item for item in self.cached_selfrole_msgs if
                                         str(item["channel_id"]) == str(channel.id) and str(item["message_id"]) == str(
                                             message.id)), None)
+
+        if message.author.id == self.bot.user.id and cached_selfrole_message is None:  # We need to lazy-cache that!
+            await self.lazy_cache(reaction.channel_id)
+            cached_selfrole_message = next((item for item in self.cached_selfrole_msgs if
+                                            str(item["channel_id"]) == str(channel.id) and str(
+                                                item["message_id"]) == str(
+                                                message.id)), None)
+
+            if cached_selfrole_message is None:  # if it still is None then skip this event
+                return
+
         cached_config_option = next(
             (item for item in self.cached_config_options if str(item["guild_id"]) == str(message.guild.id)), None)
 
@@ -80,8 +73,7 @@ class EasyRoles(commands.Cog):
 
             if values is not None:
                 if str(reaction.emoji) == values["emoji"]:
-                    if cached_config_option and "replace_existing_roles" in cached_config_option and (
-                            cached_config_option["replace_existing_roles"] == "true" or cached_config_option["replace_existing_roles"] is True):
+                    if cached_config_option and "replace_existing_roles" in cached_config_option and (cached_config_option["replace_existing_roles"] == "true" or cached_config_option["replace_existing_roles"] is True):
                         for role_i in user.roles:
                             try:
                                 if role_i.name != "@everyone":
@@ -93,25 +85,31 @@ class EasyRoles(commands.Cog):
                     role_o = message.guild.get_role(int(values["mention_id"]))
                     await user.add_roles(role_o)
                     self.stats_roles_given += 1
-                    print("User " + user.name + " acquired role " + role_o.name + ".")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, reaction):
         """Removes the corresponding role when the user removes their reaction from the self role message"""
-        user = self.bot.get_guild(reaction.guild_id).get_member(reaction.user_id)
-        message = await self.bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
         channel = self.bot.get_channel(reaction.channel_id)
+        message = await channel.fetch_message(reaction.message_id)
 
         cached_selfrole_message = next((item for item in self.cached_selfrole_msgs if
                                         str(item["channel_id"]) == str(channel.id) and str(item["message_id"]) == str(
                                             message.id)), None)
 
+        if message.author.id == self.bot.user.id and cached_selfrole_message is None:  # We need to lazy-cache that!
+            await self.lazy_cache(reaction.channel_id)
+            cached_selfrole_message = next((item for item in self.cached_selfrole_msgs if
+                                            str(item["channel_id"]) == str(channel.id) and str(
+                                                item["message_id"]) == str(
+                                                message.id)), None)
+
+            if cached_selfrole_message is None:  # if it still is None then skip this event
+                return
+
         if cached_selfrole_message:
             values = cached_selfrole_message
-            role_o = message.guild.get_role(int(values["mention_id"]))
-            await user.remove_roles(role_o)
+            await self.bot.http.remove_role(reaction.guild_id, reaction.user_id, int(values["mention_id"]))
             self.stats_roles_revoked += 1
-            print("User " + user.name + " revoked role " + role_o.name + ".")
 
     async def status_task(self):
         """interactive status, changes from ::help to the credit and back"""
@@ -147,12 +145,6 @@ class EasyRoles(commands.Cog):
             await ctx.send(
                 "You can invite me to your server if you like what I can do! <3\n <https://discord.com/api/oauth2/authorize?client_id=710438395830206485&permissions=8&scope=bot>")
 
-    def get_member_count(self) -> int:
-        counter = 0
-        for guild in self.bot.guilds:
-            for _ in guild.members:
-                counter += 1
-        return counter
 
     @commands.command()
     async def stats(self, ctx):
@@ -163,7 +155,6 @@ class EasyRoles(commands.Cog):
         embed = discord.Embed(title="Stats", description="Stats for EasyRoles", color=discord.Color.gold())
         embed.add_field(name="Uptime", value=text, inline=True)
         embed.add_field(name="Server Count", value=str(len(self.bot.guilds)), inline=True)
-        embed.add_field(name="Member Count", value=str(self.get_member_count()), inline=True)
         embed.add_field(name="Roles given since start", value=str(self.stats_roles_given), inline=True)
         embed.add_field(name="Roles revoked since start", value=str(self.stats_roles_revoked), inline=True)
         await ctx.send(embed=embed)
@@ -271,12 +262,11 @@ class EasyRoles(commands.Cog):
 
 _config = configparser.RawConfigParser()
 _config.read("config.ini")
+
 _bot = commands.Bot(command_prefix="::")
 
 instance = EasyRoles(_bot, _config)
 
 _bot.loop.create_task(instance.status_task())
-_bot.loop.create_task(instance.cache())
 _bot.add_cog(instance)
 _bot.run(_config["bot"]["token"])
-
