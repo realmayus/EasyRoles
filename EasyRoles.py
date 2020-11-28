@@ -32,7 +32,7 @@ class EasyRoles(commands.Cog):
         print("Bot logged in as " + str(self.bot.user))
 
     async def lazy_cache(self, channel_id: int):
-        print(f"Lazy-caching channel {channel_id}")
+        print(f"Lazy-caching channel " + str(channel_id))
         msg_docs = self.db.collection(str(channel_id)).stream()
         for msg_doc in msg_docs:
             if msg_doc.exists:  # check if message is registered selfrole message :3
