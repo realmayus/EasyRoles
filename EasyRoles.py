@@ -18,7 +18,7 @@ from RemoveRoleProvider import RemoveRoleProvider
 
 class EasyRoles(commands.Cog):
     def __init__(self, config, bot):
-        self.bot: Bot = bot
+        self.bot = bot
         self.start_time = time.time()
         self.stats_roles_given = 0
         self.stats_roles_revoked = 0
