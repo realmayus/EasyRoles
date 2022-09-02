@@ -36,12 +36,10 @@ class EasyRoles(commands.Cog):
         self.add_ctx_menu = app_commands.ContextMenu(
             name="Add Role Provider",
             callback=self.add_role_ctx_menu,
-            guild_ids=[710595130012205138]
         )
         self.remove_ctx_menu = app_commands.ContextMenu(
             name="Remove Select Role Providers",
             callback=self.remove_ctx_menu,
-            guild_ids=[710595130012205138]
         )
         self.bot.tree.add_command(self.add_ctx_menu)
         self.bot.tree.add_command(self.remove_ctx_menu)
@@ -112,10 +110,10 @@ class EasyRoles(commands.Cog):
         if ctx.author.id != 218444620051251200:
             return await ctx.send("🚫  | You aren't authorized")
 
-        self.bot.tree.add_command(self.stats, guild=discord.Object(id=710595130012205138))
-        self.bot.tree.add_command(self.flag, guild=discord.Object(id=710595130012205138))
-        self.bot.tree.add_command(self.help, guild=discord.Object(id=710595130012205138))
-        await self.bot.tree.sync(guild=discord.Object(id=710595130012205138))
+        self.bot.tree.add_command(self.stats)
+        self.bot.tree.add_command(self.flag)
+        self.bot.tree.add_command(self.help)
+        await self.bot.tree.sync()
         await ctx.reply("Aight!")
 
     async def lazy_cache(self, channel_id: int):
