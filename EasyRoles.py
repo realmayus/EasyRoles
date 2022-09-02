@@ -262,7 +262,19 @@ class EasyRoles(commands.Cog):
         embed.add_field(name="Server Count", value=str(len(self.bot.guilds)), inline=True)
         embed.add_field(name="Roles given since start", value=str(self.stats_roles_given), inline=True)
         embed.add_field(name="Roles revoked since start", value=str(self.stats_roles_revoked), inline=True)
-        await interaction.response.send_message(embed=embed)
+        members = 0
+        for _ in self.bot.guilds:
+            members += _.member_count
+
+        top_guilds = sorted(self.bot.guilds, key=lambda d: d.member_count, reverse=True)
+
+        embed.add_field(name="Total Members", value=str(members), inline=True)
+
+        top_guilds_string = ""
+        for i in range(min(10, len(self.bot.guilds))):
+            top_guilds_string += f"{i+1}: {top_guilds[i].name} ({top_guilds[i].member_count})\n"
+
+        await interaction.response.send_message(f"**Top guilds**:\n{top_guilds_string}", embed=embed)
 
     @app_commands.command()
     @app_commands.describe(
