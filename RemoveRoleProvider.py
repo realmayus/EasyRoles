@@ -40,8 +40,7 @@ class RemoveRoleProvider(discord.ui.View):
 
     @discord.ui.button(label="Okay", emoji="✅", style=discord.ButtonStyle.primary)
     async def okay(self, interaction, item):
-        print(self.selected)
         if len(self.selected) == 0:
             await interaction.message.reply("❌  | You didn't select any role providers to remove.", delete_after=5)
         await self.callback(self.role_providers, self.selected, self.message)
-        await interaction.message.edit(content="✅  | Done!", delete_after=3)
+        await interaction.message.edit(content="✅  | Done!", view=None, delete_after=3)

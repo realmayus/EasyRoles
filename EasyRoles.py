@@ -110,11 +110,7 @@ class EasyRoles(commands.Cog):
         if ctx.author.id != 218444620051251200:
             return await ctx.send("🚫  | You aren't authorized")
 
-        # self.bot.tree.add_command(self.stats)
-        # self.bot.tree.add_command(self.flag)
-        # self.bot.tree.add_command(self.help)
-        x = await self.bot.tree.sync()
-        print("LENGTH", len(x))
+        await self.bot.tree.sync()
         await ctx.reply("Aight!")
 
     async def lazy_cache(self, channel_id: int):
@@ -134,7 +130,6 @@ class EasyRoles(commands.Cog):
 
         results = []
         for item in self.cached_selfrole_msgs:
-            print(item, item["channel_id"] == channel_id, item["message_id"] == message_id, item["emoji"] == emoji)
             if str(item["channel_id"]) == str(channel_id) and str(
                     item["message_id"]) == str(
                 message_id) and (emoji == item["emoji"] if emoji is not None else True):
@@ -155,7 +150,6 @@ class EasyRoles(commands.Cog):
         if cached_selfrole_message is None:  # We need to lazy-cache that!
             await self.lazy_cache(channel_id)
             cached_selfrole_message = self.scout_cache(channel_id, message_id, emoji)
-            print(emoji, channel_id, message_id, self.cached_selfrole_msgs)
 
             if cached_selfrole_message is None:  # if it still is None then skip this event
                 self.cached_uninteresting_channels.append(channel_id)
@@ -198,7 +192,6 @@ class EasyRoles(commands.Cog):
                             except:
                                 pass
 
-                    print("role", values["mention_id"])
                     await user.add_roles(discord.Object(id=int(values["mention_id"])))
                     self.stats_roles_given += 1
 
@@ -226,7 +219,7 @@ class EasyRoles(commands.Cog):
 
         role_providers = await self.get_role_provider(message.channel.id, message.id, None)
         if role_providers is None:
-            await interaction.response.send_message("❌  | This message does not have any role providers.")
+            return await interaction.response.send_message("❌  | This message does not have any role providers.")
 
         await interaction.response.send_message("📝  | Please select the role providers which you want to be removed:",
                                                 view=RemoveRoleProvider(interaction, message, role_providers,
