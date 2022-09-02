@@ -110,9 +110,9 @@ class EasyRoles(commands.Cog):
         if ctx.author.id != 218444620051251200:
             return await ctx.send("🚫  | You aren't authorized")
 
-        self.bot.tree.add_command(self.stats)
-        self.bot.tree.add_command(self.flag)
-        self.bot.tree.add_command(self.help)
+        # self.bot.tree.add_command(self.stats)
+        # self.bot.tree.add_command(self.flag)
+        # self.bot.tree.add_command(self.help)
         x = await self.bot.tree.sync()
         print("LENGTH", len(x))
         await ctx.reply("Aight!")
