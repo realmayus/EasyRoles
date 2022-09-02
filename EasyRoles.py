@@ -113,7 +113,8 @@ class EasyRoles(commands.Cog):
         self.bot.tree.add_command(self.stats)
         self.bot.tree.add_command(self.flag)
         self.bot.tree.add_command(self.help)
-        await self.bot.tree.sync()
+        x = await self.bot.tree.sync()
+        print("LENGTH", len(x))
         await ctx.reply("Aight!")
 
     async def lazy_cache(self, channel_id: int):
