@@ -69,6 +69,14 @@ class EasyRoles(commands.Cog):
 
             roles.append(role)
 
+        if len(roles) == 0 and len(omitted) == 0:
+            return await interaction.response.send_message(
+                "❌  | No roles found. Please add some roles first.")
+        elif len(roles) == 0:
+            return await interaction.response.send_message(
+                f"❌  | No viable roles found. Please add some roles first. (Roles that have been omitted due to my "
+                f"role being below these: {', '.join(omitted)})")
+
         await interaction.response.send_message("Okay, so you want to attach a role provider to this message? Cool, "
                                                 "first select which role I should be giving to people." + (
                                                     "\n\n**Note:** The following roles have been omitted because my "
