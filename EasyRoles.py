@@ -113,6 +113,16 @@ class EasyRoles(commands.Cog):
         await self.bot.tree.sync()
         await ctx.reply("Aight!")
 
+    @commands.command(name="lookup")
+    async def lookup(self, ctx: Context, server_id: int):
+        if ctx.author.id != 218444620051251200:
+            return await ctx.send("🚫  | You aren't authorized")
+
+        self.bot: Bot
+        channels = self.bot.get_guild(server_id).channels
+        await ctx.send(f"Found {len(channels)} channels in guild {server_id}:\n\n" + "\n".join([f"- {x.name}  (`{x.id}`)" for x in channels]))
+
+
     async def lazy_cache(self, channel_id: int):
         print("Lazy-caching channel " + str(channel_id))
         msg_docs = self.db.collection(str(channel_id)).stream()
