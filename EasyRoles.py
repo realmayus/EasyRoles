@@ -77,13 +77,18 @@ class EasyRoles(commands.Cog):
                 f"❌  | No viable roles found. Please add some roles first. (Roles that have been omitted due to my "
                 f"role being below these: {', '.join(omitted)})")
 
+        existing_role_providers = await self.get_role_provider(message.channel.id, message.id, None)
+        if existing_role_providers is None:
+            existing_role_providers = []
+
+
         await interaction.response.send_message("Okay, so you want to attach a role provider to this message? Cool, "
                                                 "first select which role I should be giving to people." + (
                                                     "\n\n**Note:** The following roles have been omitted because my "
                                                     "highest role is below these: " + ", ".join(
                                                         omitted) if len(omitted) > 0 else ""),
                                                 view=AddRoleProvider(roles, self.bot, message,
-                                                                     self.on_finish_add_dialog))
+                                                                     self.on_finish_add_dialog, existing_role_providers))
 
     async def on_finish_add_dialog(self, emoji: discord.Emoji, role: discord.Role, message: discord.Message):
         await message.add_reaction(emoji)

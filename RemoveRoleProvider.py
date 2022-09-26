@@ -13,6 +13,14 @@ class Select(discord.ui.Select):
         super().__init__()
         self.set_selected = set_selected
         self.max_values = len(role_providers)
+
+        viable_providers = []
+
+        for provider in role_providers:  # remove duplicates
+            if provider["mention_id"] in [i["mention_id"] for i in viable_providers]:
+                continue
+            viable_providers.append(provider)
+
         self.options = [SelectOption(label=interaction.guild.get_role(i["mention_id"]).name, value=i["mention_id"],
                                      emoji=self.get_emoji(i["emoji"])) for i in role_providers]
 
