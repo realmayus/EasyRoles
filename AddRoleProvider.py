@@ -12,6 +12,8 @@ class Select(discord.ui.Select):
         self.on_finish_callback = callback
         self.existing_role_providers = existing_role_providers
 
+        print(len(roles), ",".join([str(r) for r in roles]))
+
         options = [SelectOption(label=role.name, value=str(role.id)) for role in roles]
         super().__init__(placeholder="Select a role", max_values=1, min_values=1, options=options)
 
