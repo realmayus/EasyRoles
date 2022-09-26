@@ -22,7 +22,7 @@ class Select(discord.ui.Select):
             viable_providers.append(provider)
 
         self.options = [SelectOption(label=interaction.guild.get_role(i["mention_id"]).name, value=i["mention_id"],
-                                     emoji=self.get_emoji(i["emoji"])) for i in role_providers]
+                                     emoji=self.get_emoji(i["emoji"])) for i in viable_providers]
 
     async def callback(self, interaction: discord.Interaction):
         self.set_selected([int(i) for i in self.values])

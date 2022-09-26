@@ -5,9 +5,6 @@ import discord.ui
 from discord import SelectOption, InteractionMessage
 
 
-#        if message.author == interaction.user:
-#            """check if emoji in message is valid"""
-
 class Select(discord.ui.Select):
     def __init__(self, roles: List[discord.Role], bot: discord.Client, message: discord.Message, callback, existing_role_providers):
         self.bot = bot
