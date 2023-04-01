@@ -1,5 +1,4 @@
-firebase-sdk.json
-config.ini
+secrets/*
 log.txt
 venv
 .idea

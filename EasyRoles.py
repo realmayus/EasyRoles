@@ -25,7 +25,7 @@ class EasyRoles(commands.Cog):
         self.available_flags = {
             "replace_existing_roles": ["false", "true"]
         }
-        firebase_cred = credentials.Certificate("firebase-sdk.json")  # Obtaining certificate from ./firebase-sdk.json
+        firebase_cred = credentials.Certificate("secrets/firebase-sdk.json")  # Obtaining certificate from secrets/firebase-sdk.json
         firebase_admin.initialize_app(firebase_cred)  # Initializing firebase app with credentials
         self.db = firestore.client()
         self.cached_config_options = []
@@ -80,7 +80,6 @@ class EasyRoles(commands.Cog):
         existing_role_providers = await self.get_role_provider(message.channel.id, message.id, None)
         if existing_role_providers is None:
             existing_role_providers = []
-
 
         await interaction.response.send_message("Okay, so you want to attach a role provider to this message? Cool, "
                                                 "first select which role I should be giving to people." + (
@@ -361,7 +360,7 @@ class EasyRoles(commands.Cog):
                                        f"server: https://discord.gg/Q2QKtVp7rB")
 
 _config = configparser.RawConfigParser()
-_config.read("config.ini")
+_config.read("secrets/config.ini")
 
 intent = Intents.default()
 _bot = commands.Bot(command_prefix=when_mentioned_or("::"), intents=intent)

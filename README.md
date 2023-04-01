@@ -77,3 +77,10 @@ If there are other bots in your server that are conflicting with EasyRoles' pref
 ```ini
 prefix = ! ;where ! can be whatever character you want
 ```
+
+### Docker
+1. Create a local secrets directory (here we use `$HOME/secrets/easyroles`)
+2. Add `config.ini` and `firebase-sdk.json` to this directory (create as described above)
+3. Clone the repo: `git clone https://github.com/realmayus/easyroles`
+4. Build the docker image: `docker build --tag easyroles .`
+5. Mount a secrets directory of the host to a virtual volume and run as a container: `sudo docker run -v $HOME/secrets/easyroles:/app/secrets:ro --name easyroles -d easyroles`
